@@ -1,6 +1,7 @@
 package com.marcosbarbero.lab.sec.oauth.jwt.config.security;
 
 import com.marcosbarbero.lab.sec.oauth.jwt.config.props.SecurityProperties;
+
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,9 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import javax.sql.DataSource;
 import java.security.KeyPair;
@@ -37,8 +41,8 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     private TokenStore tokenStore;
 
     public AuthorizationServerConfiguration(final DataSource dataSource, final PasswordEncoder passwordEncoder,
-                                            final AuthenticationManager authenticationManager, final SecurityProperties securityProperties,
-                                            final UserDetailsService userDetailsService) {
+            final AuthenticationManager authenticationManager, final SecurityProperties securityProperties,
+            final UserDetailsService userDetailsService) {
         this.dataSource = dataSource;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
@@ -56,7 +60,7 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 
     @Bean
     public DefaultTokenServices tokenServices(final TokenStore tokenStore,
-                                              final ClientDetailsService clientDetailsService) {
+            final ClientDetailsService clientDetailsService) {
         DefaultTokenServices tokenServices = new DefaultTokenServices();
         tokenServices.setSupportRefreshToken(true);
         tokenServices.setTokenStore(tokenStore);
@@ -86,10 +90,8 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
 
     @Override
     public void configure(final AuthorizationServerEndpointsConfigurer endpoints) {
-        endpoints.authenticationManager(this.authenticationManager)
-                .accessTokenConverter(jwtAccessTokenConverter())
-                .userDetailsService(this.userDetailsService)
-                .tokenStore(tokenStore());
+        endpoints.authenticationManager(this.authenticationManager).accessTokenConverter(jwtAccessTokenConverter())
+                .userDetailsService(this.userDetailsService).tokenStore(tokenStore());
     }
 
     @Override
@@ -99,7 +101,8 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
     }
 
     private KeyPair keyPair(SecurityProperties.JwtProperties jwtProperties, KeyStoreKeyFactory keyStoreKeyFactory) {
-        return keyStoreKeyFactory.getKeyPair(jwtProperties.getKeyPairAlias(), jwtProperties.getKeyPairPassword().toCharArray());
+        return keyStoreKeyFactory.getKeyPair(jwtProperties.getKeyPairAlias(),
+                jwtProperties.getKeyPairPassword().toCharArray());
     }
 
     private KeyStoreKeyFactory keyStoreKeyFactory(SecurityProperties.JwtProperties jwtProperties) {
